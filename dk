@@ -1,5 +1,4 @@
 #!/bin/bash
-
 #last update: 1/7/2022
 
 COMMANDS=()
@@ -8,6 +7,11 @@ CUSTOM_COMMANDS=()
 while [[ $# -gt 0 ]]; do
   key="$1"
   case $key in
+ -update)
+    sudo wget https://raw.githubusercontent.com/humaidem/scripts/main/dk -O /usr/local/bin/dk
+    sudo chmod 755 /usr/local/bin/dk
+    exit
+    ;;
  -u)
     COMMANDS+=("UP")
     shift
@@ -183,3 +187,4 @@ if [[ "${COMMANDS[*]}" =~ "ROOT_USER" ]]; then
 else
   docker exec  --user docker $TTY_AGR $(docker ps -q) ${CUSTOM_COMMANDS[@]}
 fi
+
