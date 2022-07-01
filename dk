@@ -11,7 +11,7 @@ while [[ $# -gt 0 ]]; do
   key="$1"
   case $key in
  -update)
-    sudo curl "https://raw.githubusercontent.com/humaidem/scripts/main/dk?$(date +%s)" --output /usr/local/bin/dk
+    sudo curl -v -H "Cache-Control: no-cache" "https://raw.githubusercontent.com/humaidem/scripts/main/dk?$(date +%s)" --output /usr/local/bin/dk
     exit
     ;;
  -u)
