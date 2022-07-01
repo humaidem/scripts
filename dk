@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#last update: 1/7/2022
+
 COMMANDS=()
 TTY_AGR="-it"
 CUSTOM_COMMANDS=()
