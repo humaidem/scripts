@@ -185,8 +185,8 @@ fi
 
 
 if [[ "${COMMANDS[*]}" =~ "ROOT_USER" ]]; then
-  docker exec  --user root $TTY_AGR $(docker ps -q) ${CUSTOM_COMMANDS[@]}
+  docker exec  --user root $TTY_AGR $(docker compose ps -q) ${CUSTOM_COMMANDS[@]}
 else
-  docker exec  --user docker $TTY_AGR $(docker ps -q) ${CUSTOM_COMMANDS[@]}
+  docker exec  --user docker $TTY_AGR $(docker compose ps -q) ${CUSTOM_COMMANDS[@]}
 fi
 
