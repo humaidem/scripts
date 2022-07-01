@@ -1,0 +1,183 @@
+#!/bin/bash
+
+COMMANDS=()
+TTY_AGR="-it"
+CUSTOM_COMMANDS=()
+while [[ $# -gt 0 ]]; do
+  key="$1"
+  case $key in
+ -u)
+    COMMANDS+=("UP")
+    shift
+    ;;
+ -no-tty)
+    TTY_AGR=""
+    shift
+    ;;
+ -ua)
+    COMMANDS+=("UP")
+    COMMANDS+=("DIS-ATTACH")
+    COMMANDS+=("RECREATE")
+    COMMANDS+=("ORPHANS")
+    shift
+    ;;
+ -r)
+    COMMANDS+=("ROOT_USER")
+    shift
+    ;;
+ -rc)
+    COMMANDS+=("RECREATE")
+    shift
+    ;;
+ -or)
+    COMMANDS+=("ORPHANS")
+    shift
+    ;;
+ -da)
+    COMMANDS+=("DIS-ATTACH")
+    shift
+    ;;
+ -d)
+    COMMANDS+=("DOWN")
+    shift
+    ;;
+ -ps)
+    COMMANDS+=("PS")
+    shift
+    ;;
+ -psa)
+    COMMANDS+=("PSA")
+    shift
+    ;;
+ -pr)
+    COMMANDS+=("PRUNE")
+    shift
+    ;;
+ -repo)
+    COMMANDS+=("REPO")
+    shift
+    ;;
+ -pa)
+    CUSTOM_COMMANDS+=("php artisan")
+    shift
+    ;;
+ -par)
+    CUSTOM_COMMANDS+=("php artisan route:list")
+    shift
+    ;;
+ -ex)
+    COMMANDS+=("EXEC81")
+    shift
+    ;;
+ -ex81)
+    COMMANDS+=("EXEC81")
+    shift
+    ;;
+ -ex80)
+    COMMANDS+=("EXEC80")
+    shift
+    ;;
+ -ex74)
+    COMMANDS+=("EXEC74")
+    shift
+    ;;
+  *)                        # unknown option
+    CUSTOM_COMMANDS+=("$1") # save it in an array for later
+    shift                   # past argument
+    ;;
+  esac
+done
+
+for VARIABLE in ${COMMANDS[@]}
+do
+
+  if [ "$VARIABLE" = "UP" ]; then
+    UP_COMMANDS=()
+    if [[ "${COMMANDS[*]}" =~ "ORPHANS" ]]; then
+      UP_COMMANDS+=("--remove-orphans")
+    fi
+    if [[ "${COMMANDS[*]}" =~ "RECREATE" ]]; then
+      UP_COMMANDS+=("--force-recreate")
+    fi
+    if [[ "${COMMANDS[*]}" =~ "DIS-ATTACH" ]]; then
+      UP_COMMANDS+=("-d")
+    fi
+
+    docker compose up ${UP_COMMANDS[@]}
+  fi
+
+  if [ "$VARIABLE" = "DOWN" ]; then
+    docker compose down
+  fi
+
+  if [ "$VARIABLE" = "PS" ]; then
+    docker compose ps
+  fi
+
+  if [ "$VARIABLE" = "PSA" ]; then
+    docker ps -a
+  fi
+
+  if [ "$VARIABLE" = "PRUNE" ]; then
+    docker container prune -f
+    docker image prune -f
+  fi
+
+  if [ "$VARIABLE" = "REPO" ]; then
+    mkdir www
+    mkdir repo
+    git init --bare ./repo
+    printf "#!/bin/sh\n\n" > repo/hooks/post-receive
+    printf "GIT_WORK_TREE=../www git checkout  main -f\n" >> repo/hooks/post-receive
+    printf "cd ../www\n" >> repo/hooks/post-receive
+    printf "\n# install packages\n" >> repo/hooks/post-receive
+    printf "dk -no-tty -ex composer install --no-scripts --no-dev --no-interaction --prefer-dist --ignore-platform-reqs\n" >> repo/hooks/post-receive
+    printf "dk -no-tty -ex composer dump-autoload\n" >> repo/hooks/post-receive
+    printf "\n# make sure app is up\n" >> repo/hooks/post-receive
+    printf "#dk -no-tty -u -da\n" >> repo/hooks/post-receive
+    printf "\n# clear cache\n" >> repo/hooks/post-receive
+    printf "rm -fr bootstrap/cache/*\n" >> repo/hooks/post-receive
+    printf "rm -f bootstrap/compiled.php\n" >> repo/hooks/post-receive
+    printf "\n# cache env\n" >> repo/hooks/post-receive
+    printf "#dk -no-tty -pa env\n" >> repo/hooks/post-receive
+    printf "\n# check for new migration\n" >> repo/hooks/post-receive
+    printf "#dk -no-tty -pa migrate --force\n" >> repo/hooks/post-receive
+    chmod 775 repo/hooks/post-receive
+  fi
+
+  if [ "$VARIABLE" = "EXEC81" ]; then
+    if [ ${#CUSTOM_COMMANDS[@]} -eq 0 ]; then
+      exit
+    fi
+    docker run --rm -u "$(id -u):$(id -g)" -v $(pwd):/opt -w /opt $TTY_AGR laravelsail/php81-composer:latest ${CUSTOM_COMMANDS[@]}
+    exit
+  fi
+
+  if [ "$VARIABLE" = "EXEC80" ]; then
+    if [ ${#CUSTOM_COMMANDS[@]} -eq 0 ]; then
+      exit
+    fi
+    docker run --rm -u "$(id -u):$(id -g)" -v $(pwd):/opt -w /opt $TTY_AGR laravelsail/php80-composer:latest ${CUSTOM_COMMANDS[@]}
+    exit
+  fi
+
+  if [ "$VARIABLE" = "EXEC74" ]; then
+    if [ ${#CUSTOM_COMMANDS[@]} -eq 0 ]; then
+      exit
+    fi
+    docker run --rm -u "$(id -u):$(id -g)" -v $(pwd):/opt -w /opt $TTY_AGR laravelsail/php74-composer:latest ${CUSTOM_COMMANDS[@]}
+    exit
+  fi
+done
+
+
+if [ ${#CUSTOM_COMMANDS[@]} -eq 0 ]; then
+  exit
+fi
+
+
+if [[ "${COMMANDS[*]}" =~ "ROOT_USER" ]]; then
+  docker exec  --user root $TTY_AGR $(docker ps -q) ${CUSTOM_COMMANDS[@]}
+else
+  docker exec  --user docker $TTY_AGR $(docker ps -q) ${CUSTOM_COMMANDS[@]}
+fi
