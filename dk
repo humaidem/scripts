@@ -8,7 +8,7 @@ while [[ $# -gt 0 ]]; do
   key="$1"
   case $key in
  -update)
-    sudo wget --no-cache --no-cookies https://raw.githubusercontent.com/humaidem/scripts/main/dk -O /usr/local/bin/dk
+    sudo curl https://raw.githubusercontent.com/humaidem/scripts/main/dk --output /usr/local/bin/dk
     exit
     ;;
  -u)
