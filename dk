@@ -9,7 +9,6 @@ while [[ $# -gt 0 ]]; do
   case $key in
  -update)
     sudo wget https://raw.githubusercontent.com/humaidem/scripts/main/dk -O /usr/local/bin/dk
-    sudo chmod 755 /usr/local/bin/dk
     exit
     ;;
  -u)
