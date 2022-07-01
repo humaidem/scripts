@@ -1,6 +1,8 @@
 #!/bin/bash
 #last update: 1/7/2022
 
+# I use this script for my development which make it easy for me to speed up releaseing and dealing with docker container
+
 COMMANDS=()
 TTY_AGR="-it"
 CUSTOM_COMMANDS=()
