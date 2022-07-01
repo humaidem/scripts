@@ -10,7 +10,7 @@ while [[ $# -gt 0 ]]; do
   key="$1"
   case $key in
  -update)
-    sudo curl -H 'Cache-Control: no-cache, no-store' https://raw.githubusercontent.com/humaidem/scripts/main/dk --output /usr/local/bin/dk
+    sudo curl "https://raw.githubusercontent.com/humaidem/scripts/main/dk?$(date +%s)" --output /usr/local/bin/dk
     exit
     ;;
  -u)
