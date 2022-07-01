@@ -13,6 +13,7 @@ while [[ $# -gt 0 ]]; do
  -update)
     sudo curl "https://raw.githubusercontent.com/humaidem/scripts/main/dk?$RANDOM" --output /usr/local/bin/dk.new
     sudo mv /usr/local/bin/dk.new /usr/local/bin/dk
+    sudo chmod 755 /usr/local/bin/dk
     exit
     ;;
  -u)
